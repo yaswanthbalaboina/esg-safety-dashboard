@@ -1,0 +1,25 @@
+incident_id,narrative,target_category,target_severity
+S001,"Contractor slipped near wet walkway at solar block B, minor ankle sprain, housekeeping issue",safety,medium
+S002,"Hydraulic oil seepage observed near wind turbine gearbox maintenance bay, contained with spill kit",environment,high
+S003,"PPE non-compliance observed during solar panel cleaning activity at inverter yard",safety,medium
+S004,"Near miss: heavy vehicle movement close to open cable trench during night shift at substation",safety,high
+S005,"Water usage spike during solar module cleaning due to leaking isolation valve at array 4",environment,medium
+S006,"Repeated hazardous waste segregation deviation at contractor storage area near main gate",esg_compliance,low
+S007,"Worker climbing solar rooftop ladder without safety harness hooked to lifeline",safety,high
+S008,"Transformer insulating oil drip detected beneath substation bay 2, secondary containment deployed",environment,high
+S009,"Expired fire extinguisher found during monthly ESG compliance audit at control room",esg_compliance,medium
+S010,"Loose DC string cable connector caused minor arc flash warning during inverter inspection",safety,high
+S011,"Dust suppression water runoff entered storm drain near wind site access road",environment,medium
+S012,"Subcontractor labor attendance and safety induction log incomplete during quarterly ESG review",esg_compliance,medium
+S013,"Missing reflective safety vest for forklift spotter at warehouse loading dock",safety,low
+S014,"Minor coolant leak from battery energy storage HVAC unit, wiped and sealed",environment,low
+S015,"Solar panel packaging wood and plastic pallets left unsegregated behind O&M building",esg_compliance,low
+S016,"Technician entered high-voltage switchgear room without lockout tagout verification",safety,high
+S017,"Diesel generator fuel overflow during refilling at wind farm substation, soil remediation started",environment,high
+S018,"Missing calibration certificates for noise and air quality monitoring sensors during ESG inspection",esg_compliance,medium
+S019,"Uneven gravel walkway near tracking motor row caused trip hazard without injury",safety,low
+S020,"Elevated turbidity observed in rainwater harvesting pit after heavy monsoon runoff at solar plant",environment,medium
+S021,"Unlabeled used lead-acid battery drums stored outside authorized hazardous waste shed",esg_compliance,high
+S022,"Crane outrigger pad placed on soft ground during wind nacelle maintenance lift",safety,high
+S023,"Minor grease residue left on wind tower base platform after yaw bearing lubrication",environment,low
+S024,"Delay in submitting monthly community grievance and local hiring report for ESG disclosure",esg_compliance,low

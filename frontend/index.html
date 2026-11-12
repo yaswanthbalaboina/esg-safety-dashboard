@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ESG & Safety Incident Intelligence Dashboard</title>
+  <style>
+    :root {
+      --primary: #0f3d2e;
+      --primary-light: #1b5e46;
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --high: #dc2626;
+      --high-bg: #fee2e2;
+      --med: #d97706;
+      --med-bg: #fef3c7;
+      --low: #16a34a;
+      --low-bg: #dcfce7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 24px 32px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    header h1 { margin: 0 0 6px 0; font-size: 1.6rem; }
+    header p { margin: 0; opacity: 0.9; font-size: 0.95rem; }
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 20px;
+      display: grid;
+      gap: 20px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      gap: 20px;
+    }
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card h2 {
+      margin: 0 0 14px 0;
+      font-size: 1.1rem;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .kpi-title { font-size: 0.8rem; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .kpi-val { font-size: 1.8rem; font-weight: 700; color: var(--primary); margin-top: 4px; }
+    .kpi-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    textarea {
+      width: 100%;
+      min-height: 92px;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: vertical;
+    }
+    .input-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { background: var(--primary-light); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.secondary {
+      background: #e2e8f0;
+      color: #1e293b;
+      font-weight: 500;
+      font-size: 0.85rem;
+      padding: 8px 14px;
+    }
+    button.secondary:hover { background: #cbd5e1; }
+    .error-banner {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: var(--high-bg);
+      color: var(--high);
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .sev-high { background: var(--high-bg); color: var(--high); }
+    .sev-medium { background: var(--med-bg); color: var(--med); }
+    .sev-low { background: var(--low-bg); color: var(--low); }
+    .cat-badge { background: #e0f2fe; color: #0369a1; }
+    .bar-row { margin-bottom: 10px; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 4px; font-weight: 500; }
+    .bar-track { background: #e2e8f0; height: 10px; border-radius: 6px; overflow: hidden; }
+    .bar-fill { background: var(--primary); height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+    .trend-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: #f8fafc;
+    }
+    .trend-box h3 {
+      margin: 0 0 8px 0;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+    .chip {
+      display: inline-block;
+      background: white;
+      border: 1px solid #cbd5e1;
+      padding: 4px 9px;
+      border-radius: 14px;
+      font-size: 0.8rem;
+      margin: 3px 3px 3px 0;
+    }
+    .result-box {
+      margin-top: 16px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: none;
+    }
+    .evidence-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: #f8fafc; color: var(--muted); font-weight: 600; }
+    .meta-list { margin: 6px 0; padding-left: 18px; font-size: 0.88rem; color: #334155; }
+    .cm-table th, .cm-table td { text-align: center; padding: 6px; font-size: 0.8rem; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ESG & Safety Incident Intelligence Dashboard</h1>
+    <p>Renewable Energy Operations NLP Triage, Severity Scoring, Threshold Retrieval & Category Trend Analytics</p>
+  </header>
+
+  <div class="container">
+    <!-- Global Backend Connection Banner -->
+    <div id="globalError" class="error-banner"></div>
+
+    <!-- KPI Row -->
+    <div class="grid-4">
+      <div class="card">
+        <div class="kpi-title">Total Logged Incidents</div>
+        <div class="kpi-val" id="kpiTotal">-</div>
+        <div class="kpi-sub">Deduplicated labeled corpus</div>
+      </div>
+      <div class="card">
+        <div class="kpi-title">High Severity Alerts</div>
+        <div class="kpi-val" id="kpiHigh" style="color: var(--high);">-</div>
+        <div class="kpi-sub">P1 Immediate escalation (&lt; 1 hr)</div>
+      </div>
+      <div class="card">
+        <div class="kpi-title">Category CV Accuracy</div>
+        <div class="kpi-val" id="kpiCatAcc">-</div>
+        <div class="kpi-sub" id="kpiCatSub">Stratified Pipeline CV</div>
+      </div>
+      <div class="card">
+        <div class="kpi-title">Severity CV Accuracy</div>
+        <div class="kpi-val" id="kpiSevAcc">-</div>
+        <div class="kpi-sub" id="kpiSevSub">Stratified Pipeline CV</div>
+      </div>
+    </div>
+
+    <!-- Live Analyzer -->
+    <div class="card">
+      <h2>Live Incident Triage & Retrieval Intelligence Engine</h2>
+      <textarea id="incidentInput" maxlength="1000" oninput="updateCharCount()" placeholder="Enter field incident narrative (or click 'Try Sample Incident' to load an item from the Historical Incident Dataset Log)..."></textarea>
+      <div class="input-meta">
+        <span>Max 1,000 characters. Summary remains hidden until you click Analyze Incident.</span>
+        <span id="charCount">0 / 1000</span>
+      </div>
+
+      <div class="btn-row">
+        <button id="analyzeBtn" onclick="analyzeIncident()">Analyze Incident</button>
+        <span style="font-size:0.82rem; color:var(--muted);">Try sample:</span>
+        <button class="secondary" onclick="tryDatasetSample()">Try Sample Incident</button>
+      </div>
+
+      <div id="analyzerError" class="error-banner"></div>
+
+      <div id="analysisResult" class="result-box">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px;">
+          <strong>Predicted Classification:</strong>
+          <span id="resCategory" class="badge cat-badge">-</span>
+          <span id="resSeverity" class="badge">-</span>
+          <span id="resConfidence" style="font-size:0.82rem; color:var(--muted);"></span>
+        </div>
+
+        <p style="margin:6px 0;"><strong>Executive Summary:</strong> <span id="resSummary"></span></p>
+        <p style="margin:6px 0; font-size:0.88rem; color:#334155;">
+          <strong>Detected Location:</strong> <span id="resLocation"></span> &nbsp;|&nbsp;
+          <strong>Primary Impact:</strong> <span id="resImpact"></span> &nbsp;|&nbsp;
+          <strong>Escalation:</strong> <span id="resEscalation"></span>
+        </p>
+
+        <div class="grid-2" style="margin-top:14px;">
+          <div>
+            <strong>Recommended Preventive Actions:</strong>
+            <ul id="resActions" class="meta-list"></ul>
+            <strong>Pipeline Reasoning Steps:</strong>
+            <ul id="resReasoning" class="meta-list"></ul>
+          </div>
+          <div>
+            <strong>Similar Historical Incidents (Threshold-Filtered Precedents):</strong>
+            <div id="resRetrievalNote" style="font-size:0.82rem; color:var(--muted); margin:4px 0 8px 0;"></div>
+            <div id="resEvidence"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dedicated High-Severity Incidents Alert Table -->
+   <!-- Dedicated High-Severity Incidents Alert Table -->
+    <div class="card" style="border-left: 4px solid var(--high);">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:14px;">
+        <h2 style="color: var(--high); border-bottom:none; padding-bottom:0; margin:0;">High-Severity Incidents Requiring Priority Escalation</h2>
+        <button id="toggleHighSevBtn" class="secondary" onclick="toggleSection('highSevWrapper', 'toggleHighSevBtn')">Show Data</button>
+      </div>
+      <div id="highSevWrapper" style="overflow-x:auto; display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Incident ID</th>
+              <th>Incident Description</th>
+              <th>Category</th>
+              <th>Severity</th>
+              <th>Escalation Priority</th>
+            </tr>
+          </thead>
+          <tbody id="highSeverityTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Category-Wise Trend Analysis -->
+    <div class="card">
+      <h2>Category-Wise Recurring Hazard & ESG Trends</h2>
+      <p style="font-size:0.85rem; color:var(--muted); margin-top:0;">Top recurring risk themes and document frequencies separated by operational domain:</p>
+      <div class="grid-3" id="categoryTrendsGrid">Loading category trends...</div>
+    </div>
+
+    <!-- Distributions & Leak-Free Model Evaluation Report -->
+    <div class="grid-2">
+      <div class="card">
+        <h2>Category & Severity Distributions</h2>
+        <div id="distBars">Loading distributions...</div>
+      </div>
+      <div class="card">
+        <h2>Leak-Free Evaluation Metrics & Confusion Matrices</h2>
+        <div id="evalReportBox">Loading evaluation report...</div>
+      </div>
+    </div>
+
+    <!-- Assumptions, Limitations & Production Readiness -->
+    <div class="card">
+      <h2>Model Governance: Assumptions, Limitations, Failure Cases & Next Steps</h2>
+      <div class="grid-2">
+        <div>
+          <strong>Key Assumptions & Limitations</strong>
+          <ul class="meta-list" id="govLimits"></ul>
+        </div>
+        <div>
+          <strong>Known Failure Cases & Productionization Next Steps</strong>
+          <ul class="meta-list" id="govNext"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Historical Incident Log Table -->
+    <div class="card">
+      <h2>Historical Incident Dataset Log</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Narrative</th>
+              <th>Category</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody id="incidentTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let datasetSamples = [];
+    let sampleIndex = 0;
+
+    function toggleSection(wrapperId, btnId) {
+      const wrapper = document.getElementById(wrapperId);
+      const btn = document.getElementById(btnId);
+      if (wrapper.style.display === 'none') {
+        wrapper.style.display = 'block';
+        btn.textContent = 'Hide Data';
+      } else {
+        wrapper.style.display = 'none';
+        btn.textContent = 'Show Data';
+      }
+    }
+
+    function updateCharCount() {
+      const len = document.getElementById('incidentInput').value.length;
+      document.getElementById('charCount').textContent = `${len} / 1000`;
+    }
+
+    function showError(elementId, msg) {
+      const el = document.getElementById(elementId);
+      if (!msg) {
+        el.style.display = 'none';
+        el.textContent = '';
+      } else {
+        el.style.display = 'block';
+        el.textContent = msg;
+      }
+    }
+
+    function sevClass(sev) {
+      if (sev === 'high') return 'sev-high';
+      if (sev === 'medium') return 'sev-medium';
+      return 'sev-low';
+    }
+
+    function formatPct(val) {
+      return (val === null || val === undefined || isNaN(val)) ? 'N/A' : `${Math.round(val * 100)}%`;
+    }
+
+    function formatNum(val) {
+      return (val === null || val === undefined || isNaN(val)) ? 'N/A' : val;
+    }
+
+    // Loads ONE item from Historical Incident Dataset Log into input box without showing summary
+    function tryDatasetSample() {
+      if (!datasetSamples.length) {
+        showError('analyzerError', 'No historical dataset items available to load.');
+        return;
+      }
+      showError('analyzerError', '');
+      const item = datasetSamples[sampleIndex];
+      sampleIndex = (sampleIndex + 1) % datasetSamples.length;
+      document.getElementById('incidentInput').value = item.narrative;
+      updateCharCount();
+      // Keep summary hidden until user explicitly clicks "Analyze Incident"
+      document.getElementById('analysisResult').style.display = 'none';
+    }
+
+    function renderConfusionMatrix(title, taskEval) {
+      if (!taskEval || !taskEval.available) {
+        return `<p style="font-size:0.85rem; color:var(--muted);"><strong>${title}:</strong> N/A (${taskEval?.validation_strategy || 'Insufficient data'})</p>`;
+      }
+      const labels = taskEval.labels;
+      const cm = taskEval.confusion_matrix;
+      const report = taskEval.per_class_report || {};
+      const reportRows = Object.entries(report).map(([cls, m]) =>
+        `<tr><td><strong>${cls}</strong></td><td>${m.precision}</td><td>${m.recall}</td><td>${m.f1_score}</td><td>${m.support}</td></tr>`
+      ).join('');
+
+      let html = `<div style="margin-bottom:16px;">
+        <div style="font-size:0.85rem; font-weight:600; margin-bottom:4px;">
+          ${title} — Accuracy: ${formatPct(taskEval.accuracy)} | Macro F1: ${formatNum(taskEval.macro_f1)}
+        </div>
+        <div style="font-size:0.78rem; color:var(--muted); margin-bottom:6px;">${taskEval.validation_strategy}</div>
+        <table class="cm-table">
+          <thead><tr><th>Actual \\ Pred</th>${labels.map(l => `<th>${l}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${cm.map((row, rIdx) => `<tr><th>${labels[rIdx]}</th>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+        <table class="cm-table" style="margin-top:6px;">
+          <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr></thead>
+          <tbody>${reportRows}</tbody>
+        </table>
+      </div>`;
+      return html;
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard');
+        if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+        const data = await res.json();
+
+        showError('globalError', '');
+        datasetSamples = data.sample_incidents || [];
+
+        document.getElementById('kpiTotal').textContent = data.total_incidents ?? 'N/A';
+        document.getElementById('kpiHigh').textContent = data.severity_distribution?.high ?? 0;
+
+        const catEval = data.evaluation_metrics?.category;
+        const sevEval = data.evaluation_metrics?.severity;
+
+        document.getElementById('kpiCatAcc').textContent = formatPct(catEval?.accuracy);
+        document.getElementById('kpiCatSub').textContent = catEval?.available ? `Macro F1: ${formatNum(catEval.macro_f1)}` : 'N/A';
+
+        document.getElementById('kpiSevAcc').textContent = formatPct(sevEval?.accuracy);
+        document.getElementById('kpiSevSub').textContent = sevEval?.available ? `Macro F1: ${formatNum(sevEval.macro_f1)}` : 'N/A';
+
+        // Dedicated High-Severity Table
+        const highList = data.high_severity_incidents || [];
+        document.getElementById('highSeverityTable').innerHTML = highList.length
+          ? highList.map(h => `<tr>
+              <td><strong>${h.incident_id}</strong></td>
+              <td>${h.narrative}</td>
+              <td><span class="badge cat-badge">${h.target_category}</span></td>
+              <td><span class="badge sev-high">${h.target_severity}</span></td>
+              <td style="color:var(--high); font-weight:600;">${h.escalation_priority}</td>
+            </tr>`).join('')
+          : '<tr><td colspan="5">No high-severity incidents logged.</td></tr>';
+
+        // Category-Wise Trends
+        const trendsObj = data.category_wise_trends || {};
+        const trendCategories = ['safety', 'environment', 'esg_compliance'];
+        document.getElementById('categoryTrendsGrid').innerHTML = trendCategories.map(cat => {
+          const items = trendsObj[cat] || [];
+          const chips = items.length
+            ? items.map(t => `<span class="chip"><strong>${t.trend_term}</strong> (freq: ${t.frequency})</span>`).join('')
+            : '<span style="font-size:0.82rem; color:var(--muted);">No trends extracted.</span>';
+          return `<div class="trend-box">
+            <h3>${cat.replace('_', ' ')}</h3>
+            <div>${chips}</div>
+          </div>`;
+        }).join('');
+
+        // Distribution Bars
+        const total = data.total_incidents || 1;
+        let barsHtml = '<strong>By ESG / Safety Category</strong><div style="margin-top:8px;">';
+        for (const [k, v] of Object.entries(data.category_distribution || {})) {
+          const pct = Math.round((v / total) * 100);
+          barsHtml += `<div class="bar-row">
+            <div class="bar-label"><span>${k}</span><span>${v} (${pct}%)</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          </div>`;
+        }
+        barsHtml += '</div><strong style="display:block;margin-top:14px;">By Risk Severity</strong><div style="margin-top:8px;">';
+        for (const [k, v] of Object.entries(data.severity_distribution || {})) {
+          const pct = Math.round((v / total) * 100);
+          barsHtml += `<div class="bar-row">
+            <div class="bar-label"><span>${k.toUpperCase()}</span><span>${v} (${pct}%)</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${k==='high'?'#dc2626':k==='medium'?'#d97706':'#16a34a'}"></div></div>
+          </div>`;
+        }
+        barsHtml += '</div>';
+        document.getElementById('distBars').innerHTML = barsHtml;
+
+        // Evaluation Report & Confusion Matrices
+        document.getElementById('evalReportBox').innerHTML =
+          renderConfusionMatrix('Category Classifier', catEval) +
+          renderConfusionMatrix('Severity Classifier', sevEval);
+
+        // Historical Incident Table
+        document.getElementById('incidentTable').innerHTML = datasetSamples
+          .map(r => `<tr>
+            <td><strong>${r.incident_id}</strong></td>
+            <td>${r.narrative}</td>
+            <td><span class="badge cat-badge">${r.target_category}</span></td>
+            <td><span class="badge ${sevClass(r.target_severity)}">${r.target_severity}</span></td>
+          </tr>`).join('');
+
+        // Populate Governance Defaults immediately
+        document.getElementById('govLimits').innerHTML = `
+          <li><strong>Assumption:</strong> Labeled solar/wind operational incidents represent recurring site ESG and safety hazards.</li>
+          <li><strong>Assumption:</strong> Lexical n-grams capture primary domain signals (PPE, oil seepage, LOTO, waste segregation).</li>
+          <li><strong>Limitation:</strong> 24-record corpus is suitable for prototype validation but requires larger plant-wide logs for production scale.</li>
+          <li><strong>Limitation:</strong> TF-IDF lexical similarity may miss deep semantic synonyms compared to dense sentence transformers.</li>
+        `;
+        document.getElementById('govNext').innerHTML = `
+          <li><strong>Failure Case:</strong> Multi-hazard narratives (e.g., chemical spill causing worker injury) receive only a single primary category.</li>
+          <li><strong>Failure Case:</strong> Negated statements (e.g., 'no oil leak detected') can still trigger hazard keywords.</li>
+          <li><strong>Next Step:</strong> Upgrade retrieval to dense embeddings (all-MiniLM-L6-v2) + optional LLM synthesis via environment variables.</li>
+          <li><strong>Next Step:</strong> Capture HSE officer feedback on predictions to continuously retrain models.</li>
+        `;
+      } catch (err) {
+        showError('globalError', 'Backend unavailable or failed to load dashboard metrics. Ensure FastAPI server is running.');
+      }
+    }
+
+    async function analyzeIncident() {
+      const text = document.getElementById('incidentInput').value.trim();
+      if (!text) {
+        showError('analyzerError', 'Please enter an incident narrative or click "Try Sample Incident" first.');
+        return;
+      }
+      if (text.length > 1000) {
+        showError('analyzerError', 'Incident narrative cannot exceed 1,000 characters.');
+        return;
+      }
+
+      showError('analyzerError', '');
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Analyzing...';
+
+      try {
+        const res = await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.detail || `API error (${res.status})`);
+        }
+        if (!data.predictions || !data.summary_and_actions) {
+          throw new Error('Unexpected response format returned from backend API.');
+        }
+
+        const box = document.getElementById('analysisResult');
+        box.style.display = 'block';
+
+        const cat = data.predictions.category;
+        const sev = data.predictions.severity;
+        document.getElementById('resCategory').textContent = cat;
+
+        const sevEl = document.getElementById('resSeverity');
+        sevEl.textContent = sev;
+        sevEl.className = 'badge ' + sevClass(sev);
+
+        const catConf = formatPct(data.predictions.category_confidence?.[cat]);
+        const sevConf = formatPct(data.predictions.severity_confidence?.[sev]);
+        document.getElementById('resConfidence').textContent = `(Category conf: ${catConf}, Severity conf: ${sevConf})`;
+
+        document.getElementById('resSummary').textContent = data.summary_and_actions.executive_summary;
+        document.getElementById('resLocation').textContent = data.summary_and_actions.detected_location;
+        document.getElementById('resImpact').textContent = data.summary_and_actions.detected_impact;
+        document.getElementById('resEscalation').textContent = data.summary_and_actions.escalation_protocol;
+
+        document.getElementById('resActions').innerHTML = (data.summary_and_actions.recommended_actions || [])
+          .map(a => `<li>${a}</li>`).join('');
+
+        document.getElementById('resReasoning').innerHTML = (data.reasoning_steps || [])
+          .map(s => `<li>${s}</li>`).join('');
+
+        const retrieval = data.retrieval || {};
+        document.getElementById('resRetrievalNote').textContent = retrieval.message || '';
+
+        if (retrieval.found && retrieval.matches && retrieval.matches.length) {
+          document.getElementById('resEvidence').innerHTML = retrieval.matches
+            .map(e => `<div class="evidence-item">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <strong>${e.incident_id} (${e.category} / ${e.severity})</strong>
+                <span style="color:var(--primary); font-weight:600;">Similarity: ${e.similarity_score}</span>
+              </div>
+              <div>${e.narrative}</div>
+            </div>`).join('');
+        } else {
+          document.getElementById('resEvidence').innerHTML = `<div class="evidence-item" style="color:var(--muted);">
+            No sufficiently similar historical incidents found above similarity threshold.
+          </div>`;
+        }
+      } catch (err) {
+        showError('analyzerError', err.message || 'Failed to analyze incident. Check backend connection.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Analyze Incident';
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
