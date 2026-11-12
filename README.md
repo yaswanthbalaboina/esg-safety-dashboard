@@ -3,7 +3,7 @@
 An end-to-end NLP and semantic retrieval intelligence platform designed for renewable energy operations (solar blocks, wind turbines, and substations) to classify incidents, score severity, retrieve historical precedent, extract recurring risk trends, and recommend corrective HSE actions.
 
 ## Live Deployment
-- **Railway URL:** `<PASTE_YOUR_RAILWAY_URL_HERE_AFTER_DEPLOYING>`
+- **Railway URL:** `https://web-production-41a3e1dc.up.railway.app`
 
 ## Architecture & AI/ML Method Selection
 1. **Preprocessing & Feature Engineering:** Lowercasing, punctuation/whitespace normalization, and TF-IDF vectorization with `(1,2)` n-grams and English stop-word removal inside a leak-free `scikit-learn` `Pipeline`.
